@@ -1,0 +1,25 @@
+#!/bin/sh
+
+set -eu
+
+SCRIPT_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+PROJECT_DIRECTORY=$(dirname "$SCRIPT_DIRECTORY")
+CONFIGURATION=${1:-release}
+
+cd "$PROJECT_DIRECTORY"
+swift build -c "$CONFIGURATION"
+BIN_DIRECTORY=$(swift build -c "$CONFIGURATION" --show-bin-path)
+
+APP_DIRECTORY="$PROJECT_DIRECTORY/dist/LaunchDeck.app"
+CONTENTS_DIRECTORY="$APP_DIRECTORY/Contents"
+MACOS_DIRECTORY="$CONTENTS_DIRECTORY/MacOS"
+RESOURCES_DIRECTORY="$CONTENTS_DIRECTORY/Resources"
+
+mkdir -p "$MACOS_DIRECTORY" "$RESOURCES_DIRECTORY"
+cp "$BIN_DIRECTORY/LaunchDeck" "$MACOS_DIRECTORY/LaunchDeck"
+cp "$PROJECT_DIRECTORY/Support/Info.plist" "$CONTENTS_DIRECTORY/Info.plist"
+cp "$PROJECT_DIRECTORY/Support/LaunchDeck.icns" "$RESOURCES_DIRECTORY/LaunchDeck.icns"
+chmod 755 "$MACOS_DIRECTORY/LaunchDeck"
+
+echo "已生成 $APP_DIRECTORY"
+echo "可运行：open '$APP_DIRECTORY'"
